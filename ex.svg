@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+  <!-- Python do analizy danych -->
+  <script type="text/python"><![CDATA[
+    // Generate random data
+    const data = Array.from({length: 100}, () => Math.random() * 100);
+    const mean_val = data.reduce((a, b) => a + b, 0) / data.length;
+
+    // Update SVG
+    const text_elem = document.getElementById("result");
+    text_elem.textContent = `Średnia: ${mean_val.toFixed(2)}`;
+  ]]></script>
+
+  <!-- Interaktywność w JavaScript -->
+  <script><![CDATA[
+    function regenerateData() {
+      try {
+        // Check if executeScript is available
+        if (typeof executeScript === 'function') {
+          executeScript('python');
+        } else {
+          console.error('executeScript function is not available. Please load this SVG through the HTML wrapper.');
+          document.getElementById('result').textContent = 'Error: Runtime not loaded';
+        }
+      } catch (error) {
+        console.error('Error in regenerateData:', error);
+        document.getElementById('result').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Try to initialize when loaded
+    window.onload = function() {
+      regenerateData();
+    }
+  ]]></script>
+
+  <!-- Elementy wizualne -->
+  <rect width="400" height="300" fill="#f0f8ff" stroke="#4682b4"/>
+  <text id="result" x="200" y="150" text-anchor="middle"
+        font-family="Arial" font-size="16">Obliczanie...</text>
+  <rect x="150" y="200" width="100" height="30" fill="#4682b4"
+        onclick="regenerateData()" style="cursor:pointer;"/>
+  <text x="200" y="220" text-anchor="middle" fill="white"
+        style="pointer-events:none;">Przelicz</text>
+</svg>

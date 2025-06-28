@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-language SVG Examples</title>
+    <script src="runtime/runtime.js"></script>
+    <style>
+        .example-container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .example-title {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        iframe {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multi-language SVG Examples</h1>
+    
+    <div class="example-container">
+        <div class="example-title">Python Example</div>
+        <iframe src="ex.svg" onload="initializeExample(this)"></iframe>
+    </div>
+
+    <div class="example-container">
+        <div class="example-title">Python Data Analysis</div>
+        <iframe src="examples/01-python-data-analysis/data-visualization.svg" onload="initializeExample(this)"></iframe>
+    </div>
+
+    <div class="example-container">
+        <div class="example-title">R Statistics</div>
+        <iframe src="examples/02-r-statistics/index.html" onload="initializeExample(this)"></iframe>
+    </div>
+
+    <div class="example-container">
+        <div class="example-title">SQL Database</div>
+        <iframe src="examples/03-sql-database/index.html" onload="initializeExample(this)"></iframe>
+    </div>
+
+    <div class="example-container">
+        <div class="example-title">Lua Business Logic</div>
+        <iframe src="examples/04-lua-business-logic/index.html" onload="initializeExample(this)"></iframe>
+    </div>
+
+    <div class="example-container">
+        <div class="example-title">WASM Performance</div>
+        <iframe src="examples/05-wasm-performance/index.html" onload="initializeExample(this)"></iframe>
+    </div>
+
+    <div class="example-container">
+        <div class="example-title">Hybrid Multi-language</div>
+        <iframe src="examples/06-hybrid-multilang/index.html" onload="initializeExample(this)"></iframe>
+    </div>
+
+    <script>
+        // Helper function to create SVG elements
+        function createSVGElement(tagName, svg) {
+            return document.createElementNS('http://www.w3.org/2000/svg', tagName);
+        }
+
+        // Initialize example when iframe loads
+        async function initializeExample(iframe) {
+            try {
+                // Wait for iframe content to be fully loaded
+                await new Promise(resolve => {
+                    if (iframe.contentDocument) {
+                        resolve();
+                    } else {
+                        iframe.onload = resolve;
+                    }
+                });
+
+                // Get the SVG element from the iframe
+                const svg = iframe.contentDocument.querySelector('svg');
+                if (!svg) {
+                    console.error('No SVG found in iframe');
+                    return;
+                }
+
+                // Initialize WASM if present
+                const wasmScripts = svg.getElementsByTagName('script');
+                for (const script of wasmScripts) {
+                    if (script.getAttribute('type') === 'text/wasm') {
+                        const wasmCode = script.textContent;
+                        if (wasmCode) {
+                            try {
+                                const wasmModule = await WebAssembly.instantiate(wasmCode);
+                                svg.wasmModule = wasmModule.instance;
+                                // Execute any JavaScript code that depends on WASM
+                                const jsScript = script.nextElementSibling;
+                                if (jsScript && jsScript.getAttribute('type') === 'text/javascript') {
+                                    eval(jsScript.textContent);
+                                }
+                            } catch (error) {
+                                console.error('WASM initialization failed:', error);
+                                const errorText = createSVGElement('text', svg);
+                                errorText.textContent = 'Error: WASM initialization failed - ' + error.message;
+                                errorText.setAttribute('x', '20');
+                                errorText.setAttribute('y', '20');
+                                svg.appendChild(errorText);
+                            }
+                        }
+                    }
+                }
+
+                // Execute Python code
+                const pythonScripts = svg.getElementsByTagName('script');
+                for (const script of pythonScripts) {
+                    if (script.getAttribute('type') === 'text/python') {
+                        try {
+                            // Convert Python code to JavaScript for demonstration
+                            const code = script.textContent;
+                            // Execute the code directly in the SVG context
+                            eval(code);
+                        } catch (error) {
+                            console.error('Error executing Python code:', error);
+                            const errorText = createSVGElement('text', svg);
+                            errorText.textContent = 'Error: ' + error.message;
+                            errorText.setAttribute('x', '20');
+                            errorText.setAttribute('y', '40');
+                            svg.appendChild(errorText);
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error initializing example:', error);
+                const errorText = createSVGElement('text', svg);
+                errorText.textContent = 'Error: ' + error.message;
+                errorText.setAttribute('x', '20');
+                errorText.setAttribute('y', '60');
+                svg.appendChild(errorText);
+            }
+        }
+
+        // Initialize all iframes
+        document.querySelectorAll('iframe').forEach(iframe => {
+            initializeExample(iframe);
+        });
+    </script>
+</body>
+</html>

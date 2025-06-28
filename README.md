@@ -6,14 +6,56 @@ Projekt demonstruje koncepcję osadzania i wykonywania kodu w różnych językac
 
 ## 🚀 Szybki start
 
+1. Start serwera HTTP:
 ```bash
-git clone https://github.com/username/svg-multilang-examples
-cd svg-multilang-examples
-npm install
-npm run demo
+python3 -m http.server 8000
 ```
 
-Otwórz http://localhost:3000 w przeglądarce.
+2. Otwórz przeglądarkę i przejdź do:
+```
+http://localhost:8000/demo.html
+```
+
+⚠️ **Uwaga**: Pliki SVG muszą być ładowane przez HTML wrapper (`demo.html`), aby działała obsługa wielu języków. Bez tego wrappera, funkcje takie jak `executeScript` nie będą dostępne.
+
+## 💡 Wyjaśnienie
+
+Dlaczego potrzebujemy HTML wrappera?
+1. SVG sam w sobie nie może wykonywać skryptów z różnych języków
+2. HTML wrapper dostarcza środowisko wykonawcze i runtime
+3. Wrapper ładuje odpowiednie biblioteki i inicjalizuje środowisko
+
+## 📋 Spis treści
+
+1. [Python Example](#python-example)
+2. [Python Data Analysis](#python-data-analysis)
+3. [R Statistics](#r-statistics)
+4. [SQL Database](#sql-database)
+5. [Lua Business Logic](#lua-business-logic)
+6. [WASM Performance](#wasm-performance)
+7. [Hybrid Multi-language](#hybrid-multi-language)
+
+## 📚 Dokumentacja
+
+Każdy przykład zawiera:
+- Plik SVG z kodem źródłowym
+- Opis funkcjonalności
+- Przykłady użycia
+- Wyjaśnienie implementacji
+
+## 🛠️ Technologie
+
+- SVG
+- JavaScript
+- WebAssembly
+- Python (emulacja)
+- R (emulacja)
+- SQL (emulacja)
+- Lua (emulacja)
+
+Otwórz http://localhost:8000 w przeglądarce.
+
+⚠️ **Uwaga**: Pliki SVG muszą być ładowane przez HTML wrapper (`index.html`), aby działała obsługa wielu języków. Bez tego wrappera, funkcje takie jak `executeScript` nie będą dostępne.
 
 ## 📋 Spis treści
 
