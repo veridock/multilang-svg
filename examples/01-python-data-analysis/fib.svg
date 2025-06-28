@@ -9,9 +9,34 @@
         return fibonacci(n - 1) + fibonacci(n - 2);
     }
 
-    // Calculate and display result
-    const result = fibonacci(10);
-    document.getElementById("result").textContent = result;
+    // Update result display
+    function updateResult() {
+        try {
+            const svg = document.getElementsByTagName('svg')[0];
+            const result = fibonacci(10);
+            
+            // Create or update result text
+            let text_elem = svg.getElementById("result");
+            if (!text_elem) {
+                text_elem = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text_elem.id = 'result';
+                text_elem.setAttribute('x', '50');
+                text_elem.setAttribute('y', '50');
+                svg.appendChild(text_elem);
+            }
+            text_elem.textContent = result;
+        } catch (error) {
+            console.error('Error calculating Fibonacci:', error);
+            const errorText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            errorText.textContent = 'Error: ' + error.message;
+            errorText.setAttribute('x', '20');
+            errorText.setAttribute('y', '70');
+            document.getElementsByTagName('svg')[0].appendChild(errorText);
+        }
+    }
+
+    // Initialize when loaded
+    window.addEventListener('load', updateResult);
     ]]></script>
 
   <text id="result" x="50" y="50">Loading...</text>
