@@ -13,18 +13,22 @@
   <!-- Interaktywność w JavaScript -->
   <script><![CDATA[
     function regenerateData() {
-      try {
-        // Check if executeScript is available
-        if (typeof executeScript === 'function') {
-          executeScript('python');
-        } else {
-          console.error('executeScript function is not available. Please load this SVG through the HTML wrapper.');
-          document.getElementById('result').textContent = 'Error: Runtime not loaded';
+        try {
+            // Generate new random data
+            const data = Array.from({length: 100}, () => Math.random() * 100);
+            const mean_val = data.reduce((a, b) => a + b, 0) / data.length;
+            
+            // Update SVG
+            const text_elem = document.getElementById("result");
+            text_elem.textContent = `Średnia: ${mean_val.toFixed(2)}`;
+        } catch (error) {
+            console.error('Error regenerating data:', error);
+            const errorText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            errorText.textContent = 'Error: ' + error.message;
+            errorText.setAttribute('x', '20');
+            errorText.setAttribute('y', '70');
+            document.getElementsByTagName('svg')[0].appendChild(errorText);
         }
-      } catch (error) {
-        console.error('Error in regenerateData:', error);
-        document.getElementById('result').textContent = 'Error: ' + error.message;
-      }
     }
     
     // Try to initialize when loaded

@@ -16,10 +16,11 @@
 
   <script><![CDATA[
     // Wywołanie funkcji WASM
-    window.addEventListener('load', async function() {
+    async function initializeWASM() {
         try {
-            const wasmModule = await WebAssembly.instantiateStreaming(fetch('calculations.wasm'));
-            window.wasmModule = wasmModule.instance;
+            const response = await fetch('calculations.wasm');
+            const bytes = await response.arrayBuffer();
+            const wasmModule = await WebAssembly.instantiate(bytes);
             const result = wasmModule.instance.exports.fibonacci(10);
             document.getElementById("result").textContent = result;
         } catch (error) {
@@ -30,7 +31,10 @@
             errorText.setAttribute('y', '70');
             document.getElementsByTagName('svg')[0].appendChild(errorText);
         }
-    });
+    }
+
+    // Initialize WASM when the SVG is loaded
+    window.addEventListener('load', initializeWASM);
     ]]></script>
 
   <text id="result" x="50" y="50">Loading...</text>
