@@ -2,39 +2,16 @@
   <script type="text/wasm" src="calculations.wasm"><![CDATA[
     (module
       (func $fibonacci (param $n i32) (result i32)
-        (if (i32.lt_s (local.get $n) (i32.const 2))
-          (then (return (local.get $n)))
-        )
-        (return (i32.add
-          (call $fibonacci (i32.sub (local.get $n) (i32.const 1)))
-          (call $fibonacci (i32.sub (local.get $n) (i32.const 2)))
-        ))
-      )
-      (export "fibonacci" (func $fibonacci))
-    )
-  ]]></script>
-
   <script><![CDATA[
-    // Wywołanie funkcji WASM
-    async function initializeWASM() {
-        try {
-            const response = await fetch('calculations.wasm');
-            const bytes = await response.arrayBuffer();
-            const wasmModule = await WebAssembly.instantiate(bytes);
-            const result = wasmModule.instance.exports.fibonacci(10);
-            document.getElementById("result").textContent = result;
-        } catch (error) {
-            console.error('WASM initialization failed:', error);
-            const errorText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            errorText.textContent = 'Error: WASM initialization failed - ' + error.message;
-            errorText.setAttribute('x', '20');
-            errorText.setAttribute('y', '70');
-            document.getElementsByTagName('svg')[0].appendChild(errorText);
-        }
+    // Simple Fibonacci implementation
+    function fibonacci(n) {
+        if (n <= 1) return n;
+        return fibonacci(n - 1) + fibonacci(n - 2);
     }
 
-    // Initialize WASM when the SVG is loaded
-    window.addEventListener('load', initializeWASM);
+    // Calculate and display result
+    const result = fibonacci(10);
+    document.getElementById("result").textContent = result;
     ]]></script>
 
   <text id="result" x="50" y="50">Loading...</text>

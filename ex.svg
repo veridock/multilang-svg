@@ -1,28 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
   <!-- Python do analizy danych -->
-  <script type="text/python"><![CDATA[
-    // Generate random data
-    const data = Array.from({length: 100}, () => Math.random() * 100);
-    const mean_val = data.reduce((a, b) => a + b, 0) / data.length;
-
-    // Update SVG
-    const text_elem = document.getElementById("result");
-    text_elem.textContent = `Średnia: ${mean_val.toFixed(2)}`;
-  ]]></script>
-
-  <!-- Interaktywność w JavaScript -->
   <script><![CDATA[
-    function regenerateData() {
+    // Generate random data and calculate mean
+    function calculateMean() {
+        const data = Array.from({length: 100}, () => Math.random() * 100);
+        const mean_val = data.reduce((a, b) => a + b, 0) / data.length;
+        return mean_val;
+    }
+
+    // Update SVG with result
+    function updateResult() {
         try {
-            // Generate new random data
-            const data = Array.from({length: 100}, () => Math.random() * 100);
-            const mean_val = data.reduce((a, b) => a + b, 0) / data.length;
-            
-            // Update SVG
+            const mean_val = calculateMean();
             const text_elem = document.getElementById("result");
             text_elem.textContent = `Średnia: ${mean_val.toFixed(2)}`;
         } catch (error) {
-            console.error('Error regenerating data:', error);
+            console.error('Error calculating mean:', error);
             const errorText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             errorText.textContent = 'Error: ' + error.message;
             errorText.setAttribute('x', '20');
@@ -30,11 +23,27 @@
             document.getElementsByTagName('svg')[0].appendChild(errorText);
         }
     }
-    
-    // Try to initialize when loaded
-    window.onload = function() {
-      regenerateData();
-    }
+
+    // Initialize when loaded
+    updateResult();
+
+    // Add button to regenerate data
+    const button = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    button.setAttribute('x', '20');
+    button.setAttribute('y', '90');
+    button.setAttribute('width', '100');
+    button.setAttribute('height', '30');
+    button.setAttribute('fill', '#4CAF50');
+    button.setAttribute('rx', '5');
+    button.onclick = updateResult;
+    document.getElementsByTagName('svg')[0].appendChild(button);
+
+    const buttonText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    buttonText.textContent = 'Regenerate';
+    buttonText.setAttribute('x', '50');
+    buttonText.setAttribute('y', '110');
+    buttonText.setAttribute('fill', 'white');
+    document.getElementsByTagName('svg')[0].appendChild(buttonText);
   ]]></script>
 
   <!-- Elementy wizualne -->
