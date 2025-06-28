@@ -1,73 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
-  <!-- Python do analizy danych -->
   <script><![CDATA[
-    // Generate random data and calculate mean
-    function calculateMean() {
-        const data = Array.from({length: 100}, () => Math.random() * 100);
-        const mean_val = data.reduce((a, b) => a + b, 0) / data.length;
-        return mean_val;
-    }
-
-    // Update SVG with result
-    function updateResult() {
-        try {
-            const mean_val = calculateMean();
-            const svg = document.getElementsByTagName('svg')[0];
-            
-            // Create or update result text
-            let text_elem = svg.getElementById("result");
-            if (!text_elem) {
-                text_elem = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text_elem.id = 'result';
-                text_elem.setAttribute('x', '50');
-                text_elem.setAttribute('y', '50');
-                svg.appendChild(text_elem);
-            }
-            text_elem.textContent = `Średnia: ${mean_val.toFixed(2)}`;
-        } catch (error) {
-            console.error('Error calculating mean:', error);
-            const errorText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            errorText.textContent = 'Error: ' + error.message;
-            errorText.setAttribute('x', '20');
-            errorText.setAttribute('y', '70');
-            document.getElementsByTagName('svg')[0].appendChild(errorText);
-        }
+    // Simple data analysis
+    function update() {
+      const data = Array.from({length: 100}, () => Math.random() * 100);
+      const mean = data.reduce((a, b) => a + b, 0) / data.length;
+      
+      // Create or update result text
+      let text_elem = document.getElementById('result');
+      if (!text_elem) {
+        text_elem = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text_elem.id = 'result';
+        text_elem.setAttribute('x', '50');
+        text_elem.setAttribute('y', '50');
+        document.getElementsByTagName('svg')[0].appendChild(text_elem);
+      }
+      text_elem.textContent = `Średnia: ${mean.toFixed(2)}`;
     }
 
     // Initialize when loaded
-    window.addEventListener('load', updateResult);
-
-    // Add button to regenerate data
     window.addEventListener('load', function() {
-        const svg = document.getElementsByTagName('svg')[0];
-        
-        // Create button
-        const button = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        button.setAttribute('x', '20');
-        button.setAttribute('y', '90');
-        button.setAttribute('width', '100');
-        button.setAttribute('height', '30');
-        button.setAttribute('fill', '#4CAF50');
-        button.setAttribute('rx', '5');
-        button.onclick = updateResult;
-        svg.appendChild(button);
+      update();
+      
+      // Create button
+      const button = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      button.setAttribute('x', '20');
+      button.setAttribute('y', '90');
+      button.setAttribute('width', '100');
+      button.setAttribute('height', '30');
+      button.setAttribute('fill', '#4CAF50');
+      button.setAttribute('rx', '5');
+      button.onclick = update;
+      document.getElementsByTagName('svg')[0].appendChild(button);
 
-        // Create button text
-        const buttonText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        buttonText.textContent = 'Regenerate';
-        buttonText.setAttribute('x', '50');
-        buttonText.setAttribute('y', '110');
-        buttonText.setAttribute('fill', 'white');
-        svg.appendChild(buttonText);
+      // Create button text
+      const buttonText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      buttonText.textContent = 'Regenerate';
+      buttonText.setAttribute('x', '50');
+      buttonText.setAttribute('y', '110');
+      buttonText.setAttribute('fill', 'white');
+      document.getElementsByTagName('svg')[0].appendChild(buttonText);
     });
   ]]></script>
-
-  <!-- Elementy wizualne -->
-  <rect width="400" height="300" fill="#f0f8ff" stroke="#4682b4"/>
-  <text id="result" x="200" y="150" text-anchor="middle"
-        font-family="Arial" font-size="16">Obliczanie...</text>
-  <rect x="150" y="200" width="100" height="30" fill="#4682b4"
-        onclick="regenerateData()" style="cursor:pointer;"/>
-  <text x="200" y="220" text-anchor="middle" fill="white"
-        style="pointer-events:none;">Przelicz</text>
 </svg>

@@ -1,43 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg">
-  <script type="text/wasm" src="calculations.wasm"><![CDATA[
-    (module
-      (func $fibonacci (param $n i32) (result i32)
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+  <script type="text/javascript" src="fibonacci.js"></script>
   <script><![CDATA[
-    // Simple Fibonacci implementation
-    function fibonacci(n) {
-        if (n <= 1) return n;
-        return fibonacci(n - 1) + fibonacci(n - 2);
+    // Initialize WASM-like module
+    let fibonacciModule;
+    
+    async function initWasm() {
+        try {
+            fibonacciModule = await import('./fibonacci.js');
+            update();
+        } catch (error) {
+            console.error('Failed to initialize module:', error);
+            showError('Failed to initialize module');
+        }
     }
 
-    // Update result display
-    function updateResult() {
+    // Update result using WASM-like module
+    function update() {
         try {
-            const svg = document.getElementsByTagName('svg')[0];
-            const result = fibonacci(10);
+            if (!fibonacciModule) {
+                showError('Module not initialized');
+                return;
+            }
+            
+            const result = fibonacciModule.fibonacci(10);
             
             // Create or update result text
-            let text_elem = svg.getElementById("result");
+            let text_elem = document.getElementById('result');
             if (!text_elem) {
                 text_elem = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 text_elem.id = 'result';
                 text_elem.setAttribute('x', '50');
                 text_elem.setAttribute('y', '50');
-                svg.appendChild(text_elem);
+                document.getElementsByTagName('svg')[0].appendChild(text_elem);
             }
             text_elem.textContent = result;
         } catch (error) {
-            console.error('Error calculating Fibonacci:', error);
-            const errorText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            errorText.textContent = 'Error: ' + error.message;
-            errorText.setAttribute('x', '20');
-            errorText.setAttribute('y', '70');
-            document.getElementsByTagName('svg')[0].appendChild(errorText);
+            showError('Error calculating Fibonacci: ' + error.message);
         }
     }
 
-    // Initialize when loaded
-    window.addEventListener('load', updateResult);
-    ]]></script>
+    // Show error message
+    function showError(message) {
+        const errorText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        errorText.textContent = message;
+        errorText.setAttribute('x', '20');
+        errorText.setAttribute('y', '70');
+        document.getElementsByTagName('svg')[0].appendChild(errorText);
+    }
 
-  <text id="result" x="50" y="50">Loading...</text>
+    // Initialize when loaded
+    window.addEventListener('load', initWasm);
+  ]]></script>
 </svg>
