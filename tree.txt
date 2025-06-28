@@ -1,0 +1,91 @@
+svg-multilang-examples/
+├── README.md
+├── package.json
+├── .gitignore
+├── docs/
+│   ├── README.md
+│   ├── architecture.md
+│   ├── browser-support.md
+│   └── implementation-notes.md
+├── examples/
+│   ├── README.md
+│   ├── 01-python-data-analysis/
+│   │   ├── README.md
+│   │   ├── index.html
+│   │   ├── data-visualization.svg
+│   │   ├── data/
+│   │   │   └── sample-data.csv
+│   │   └── screenshots/
+│   │       └── preview.png
+│   ├── 02-r-statistics/
+│   │   ├── README.md
+│   │   ├── index.html
+│   │   ├── statistical-analysis.svg
+│   │   ├── data/
+│   │   │   └── dataset.csv
+│   │   └── screenshots/
+│   │       └── preview.png
+│   ├── 03-sql-database/
+│   │   ├── README.md
+│   │   ├── index.html
+│   │   ├── database-dashboard.svg
+│   │   ├── data/
+│   │   │   └── sample.db
+│   │   └── screenshots/
+│   │       └── preview.png
+│   ├── 04-lua-business-logic/
+│   │   ├── README.md
+│   │   ├── index.html
+│   │   ├── tax-calculator.svg
+│   │   └── screenshots/
+│   │       └── preview.png
+│   ├── 05-wasm-performance/
+│   │   ├── README.md
+│   │   ├── index.html
+│   │   ├── fibonacci-calculator.svg
+│   │   ├── wasm/
+│   │   │   ├── calculations.wasm
+│   │   │   └── source.wat
+│   │   └── screenshots/
+│   │       └── preview.png
+│   └── 06-hybrid-multilang/
+│       ├── README.md
+│       ├── index.html
+│       ├── comprehensive-dashboard.svg
+│       ├── data/
+│       │   ├── sales-data.csv
+│       │   └── config.json
+│       └── screenshots/
+│           └── preview.png
+├── runtime/
+│   ├── README.md
+│   ├── svg-interpreter.js
+│   ├── python-bridge.js
+│   ├── r-bridge.js
+│   ├── sql-bridge.js
+│   ├── lua-bridge.js
+│   └── wasm-loader.js
+├── tools/
+│   ├── README.md
+│   ├── svg-validator.js
+│   ├── code-extractor.js
+│   └── performance-profiler.js
+├── tests/
+│   ├── README.md
+│   ├── unit/
+│   │   ├── interpreter.test.js
+│   │   └── bridges.test.js
+│   ├── integration/
+│   │   ├── end-to-end.test.js
+│   │   └── browser-compatibility.test.js
+│   └── fixtures/
+│       ├── sample-svg-files/
+│       └── test-data/
+└── demo/
+    ├── README.md
+    ├── index.html
+    ├── styles.css
+    ├── demo.js
+    └── assets/
+        ├── logo.svg
+        └── screenshots/

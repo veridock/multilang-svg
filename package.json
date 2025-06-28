@@ -1,0 +1,137 @@
+{
+  "name": "svg-multilang-examples",
+  "version": "1.0.0",
+  "description": "Experimental SVG runtime with multi-language support - Python, R, SQL, Lua, WebAssembly",
+  "main": "demo/index.html",
+  "scripts": {
+    "dev": "concurrently \"npm run serve\" \"npm run watch\"",
+    "serve": "http-server . -p 3000 -c-1 --cors",
+    "watch": "nodemon --watch examples --watch runtime --ext svg,html,js --exec \"npm run validate\"",
+    "build": "npm run build:runtime && npm run build:examples && npm run build:docs",
+    "build:runtime": "webpack --config webpack.config.js --mode production",
+    "build:examples": "node tools/build-examples.js",
+    "build:docs": "node tools/generate-docs.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
+    "validate": "node tools/svg-validator.js examples/**/*.svg",
+    "lint": "eslint runtime/ tools/ tests/ --ext .js",
+    "lint:fix": "eslint runtime/ tools/ tests/ --ext .js --fix",
+    "demo": "npm run serve",
+    "setup": "npm run setup:python && npm run setup:r && npm run setup:wasm",
+    "setup:python": "node scripts/setup-pyodide.js",
+    "setup:r": "node scripts/setup-webr.js",
+    "setup:wasm": "node scripts/setup-wasm-tools.js",
+    "benchmark": "node tools/performance-profiler.js",
+    "extract-code": "node tools/code-extractor.js",
+    "deploy": "npm run build && gh-pages -d dist",
+    "clean": "rimraf dist coverage .nyc_output",
+    "docs:serve": "docsify serve docs",
+    "release": "standard-version",
+    "precommit": "lint-staged"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/veridock/multilang-svg.git"
+  },
+  "keywords": [
+    "svg",
+    "python",
+    "webassembly",
+    "sql",
+    "lua",
+    "r-lang",
+    "data-visualization",
+    "interactive-documents",
+    "pyodide",
+    "multilang",
+    "runtime",
+    "browser",
+    "vector-graphics"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/username/svg-multilang-examples/issues"
+  },
+  "homepage": "https://github.com/username/svg-multilang-examples#readme",
+  "devDependencies": {
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "@types/jest": "^29.5.0",
+    "babel-loader": "^9.1.0",
+    "concurrently": "^8.2.0",
+    "cypress": "^12.17.0",
+    "docsify-cli": "^4.4.4",
+    "eslint": "^8.42.0",
+    "eslint-config-standard": "^17.1.0",
+    "gh-pages": "^5.0.0",
+    "http-server": "^14.1.1",
+    "husky": "^8.0.3",
+    "jest": "^29.5.0",
+    "jsdom": "^22.1.0",
+    "lint-staged": "^13.2.2",
+    "nodemon": "^2.0.22",
+    "rimraf": "^5.0.1",
+    "standard-version": "^9.5.0",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "papaparse": "^5.4.1"
+  },
+  "peerDependencies": {
+    "pyodide": "^0.24.0",
+    "sql.js": "^1.8.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "jest": {
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "runtime/**/*.js",
+      "tools/**/*.js",
+      "!**/node_modules/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 70,
+        "lines": 70,
+        "statements": 70
+      }
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.svg": [
+      "node tools/svg-validator.js",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm test"
+    }
+  },
+  "standard-version": {
+    "scripts": {
+      "prebump": "npm test",
+      "precommit": "git add docs/CHANGELOG.md"
+    }
+  }
+}

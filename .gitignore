@@ -1,3 +1,143 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime environments cache
+runtime/cache/
+.pyodide/
+.webr/
+.wasm-cache/
+
+# Build outputs
+dist/
+build/
+.tmp/
+.cache/
+
+# Coverage reports
+coverage/
+.nyc_output/
+*.lcov
+
+# Testing
+.jest/
+cypress/videos/
+cypress/screenshots/
+test-results/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime temp files
+*.tmp
+*.temp
+.temp/
+
+# Database files (examples)
+examples/*/data/*.db
+examples/*/data/*.sqlite
+examples/*/data/*.sqlite3
+
+# Large data files
+*.csv.backup
+*.json.backup
+data-backup/
+
+# Compiled WASM files (keep source .wat files)
+examples/*/wasm/*.wasm
+runtime/wasm/*.wasm
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# R
+.RData
+.Rhistory
+.Rproj.user
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+
+# Package files
+*.tgz
+*.tar.gz
+*.zip
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Security
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+.secrets/
+
+# Performance profiling
+*.prof
+*.profile
+performance-reports/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Temporary SVG files
+*.svg.tmp
+examples/*/generated/*.svg
+
+# Local configuration
+config/local.json
+.local/
+
+# Deployment
+.vercel/
+.netlify/
+.github/workflows/deploy.yml.local
 # Logs
 logs
 *.log

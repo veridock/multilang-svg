@@ -1,0 +1,658 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700">
+  <!-- Lua Business Logic Script -->
+  <script type="text/lua"><![CDATA[
+    -- Konfiguracja stawek podatkowych dla różnych krajów
+    local tax_config = {
+      ["PL"] = {
+        name = "Polska",
+        currency = "PLN",
+        brackets = {
+          {min = 0, max = 120000, rate = 0.12, deduction = 0},
+          {min = 120000, max = math.huge, rate = 0.32, deduction = 24000}
+        },
+        health_insurance = 0.09,
+        social_insurance = 0.1371,
+        min_wage = 3490
+      },
+      ["DE"] = {
+        name = "Niemcy",
+        currency = "EUR",
+        brackets = {
+          {min = 0, max = 10908, rate = 0.0, deduction = 0},
+          {min = 10908, max = 62809, rate = 0.14, deduction = 1495.26},
+          {min = 62809, max = 277825, rate = 0.42, deduction = 18984.82},
+          {min = 277825, max = math.huge, rate = 0.45, deduction = 27317.57}
+        },
+        health_insurance = 0.073,
+        social_insurance = 0.093,
+        min_wage = 2054
+      },
+      ["US"] = {
+        name = "USA",
+        currency = "USD",
+        brackets = {
+          {min = 0, max = 11000, rate = 0.10, deduction = 0},
+          {min = 11000, max = 44725, rate = 0.12, deduction = 220},
+          {min = 44725, max = 95375, rate = 0.22, deduction = 4697},
+          {min = 95375, max = 197050, rate = 0.24, deduction = 6592},
+          {min = 197050, max = 250525, rate = 0.32, deduction = 22432},
+          {min = 250525, max = math.huge, rate = 0.37, deduction = 34952}
+        },
+        health_insurance = 0.0145,
+        social_insurance = 0.062,
+        min_wage = 2340
+      }
+    }
+
+    -- Funkcja obliczania podatku progresywnego
+    function calculate_progressive_tax(income, country_code)
+      local config = tax_config[country_code]
+      if not config then
+        return nil, "Nieobsługiwany kraj: " .. country_code
+      end
+
+      local total_tax = 0
+      local effective_rate = 0
+      local marginal_rate = 0
+
+      -- Znajdowanie odpowiedniego przedziału podatkowego
+      for _, bracket in ipairs(config.brackets) do
+        if income > bracket.min then
+          if income <= bracket.max then
+            -- Dochód mieści się w tym przedziale
+            local taxable_in_bracket = income - bracket.min
+            local tax_in_bracket = taxable_in_bracket * bracket.rate
+            total_tax = total_tax + tax_in_bracket - bracket.deduction
+            marginal_rate = bracket.rate
+            break
+          else
+            -- Dochód przekracza ten przedział, oblicz pełny podatek z przedziału
+            local taxable_in_bracket = bracket.max - bracket.min
+            local tax_in_bracket = taxable_in_bracket * bracket.rate
+            total_tax = total_tax + tax_in_bracket - bracket.deduction
+          end
+        end
+      end
+
+      -- Zapewnij, że podatek nie jest ujemny
+      total_tax = math.max(0, total_tax)
+
+      -- Oblicz efektywną stawkę podatkową
+      if income > 0 then
+        effective_rate = total_tax / income
+      end
+
+      return {
+        income_tax = total_tax,
+        effective_rate = effective_rate,
+        marginal_rate = marginal_rate,
+        config = config
+      }
+    end
+
+    -- Funkcja obliczania składek ubezpieczeniowych
+    function calculate_insurance(income, country_code)
+      local config = tax_config[country_code]
+      if not config then
+        return 0, 0
+      end
+
+      local health = income * config.health_insurance
+      local social = income * config.social_insurance
+
+      return health, social
+    end
+
+    -- Funkcja obliczania dochodu netto
+    function calculate_net_income(gross_income, country_code)
+      local tax_result = calculate_progressive_tax(gross_income, country_code)
+      if not tax_result then
+        return nil
+      end
+
+      local health_insurance, social_insurance = calculate_insurance(gross_income, country_code)
+
+      local total_deductions = tax_result.income_tax + health_insurance + social_insurance
+      local net_income = gross_income - total_deductions
+
+      return {
+        gross_income = gross_income,
+        income_tax = tax_result.income_tax,
+        health_insurance = health_insurance,
+        social_insurance = social_insurance,
+        total_deductions = total_deductions,
+        net_income = net_income,
+        effective_tax_rate = tax_result.effective_rate,
+        marginal_tax_rate = tax_result.marginal_rate,
+        take_home_percentage = net_income / gross_income,
+        country = tax_result.config.name,
+        currency = tax_result.config.currency
+      }
+    end
+
+    -- Funkcja porównywania krajów
+    function compare_countries(income, countries)
+      local comparison = {}
+
+      for _, country_code in ipairs(countries) do
+        local result = calculate_net_income(income, country_code)
+        if result then
+          table.insert(comparison, {
+            country_code = country_code,
+            country_name = result.country,
+            net_income = result.net_income,
+            total_tax = result.income_tax + result.health_insurance + result.social_insurance,
+            take_home_rate = result.take_home_percentage,
+            currency = result.currency,
+            details = result
+          })
+        end
+      end
+
+      -- Sortowanie według dochodu netto (malejąco)
+      table.sort(comparison, function(a, b)
+        return a.net_income > b.net_income
+      end)
+
+      return comparison
+    end
+
+    -- Funkcja symulacji wzrostu wynagrodzenia
+    function salary_growth_simulation(base_salary, country_code, years, annual_growth_rate)
+      local simulation = {}
+      local current_salary = base_salary
+
+      for year = 1, years do
+        local result = calculate_net_income(current_salary, country_code)
+        if result then
+          table.insert(simulation, {
+            year = year,
+            gross_salary = current_salary,
+            net_salary = result.net_income,
+            total_tax = result.total_deductions,
+            tax_rate = result.effective_tax_rate
+          })
+        end
+        current_salary = current_salary * (1 + annual_growth_rate)
+      end
+
+      return simulation
+    end
+
+    -- Eksport funkcji do JavaScript
+    function export_to_js()
+      -- Globalne zmienne dostępne dla JavaScript
+      js_calculate_net = calculate_net_income
+      js_compare_countries = compare_countries
+      js_salary_simulation = salary_growth_simulation
+      js_tax_config = tax_config
+    end
+
+    -- Inicjalizacja
+    export_to_js()
+  ]]></script>
+
+  <!-- JavaScript Bridge and UI Logic -->
+  <script><![CDATA[
+    let currentCountry = 'PL';
+    let currentIncome = 60000;
+    let comparisonData = null;
+
+    // Inicjalizacja Lua runtime (symulacja - w rzeczywistości potrzebny Fengari lub podobny)
+    function initLuaRuntime() {
+      console.log('Inicjalizacja Lua runtime...');
+
+      // W rzeczywistej implementacji tutaj by było:
+      // const fengari = require('fengari-web');
+      // const lua = fengari.lauxlib;
+
+      // Na potrzeby demo - JavaScript implementacja logiki Lua
+      window.luaFunctions = {
+        calculate_net_income: function(income, country) {
+          // Symulacja wywołania funkcji Lua
+          return simulateLuaCalculation(income, country);
+        },
+        compare_countries: function(income, countries) {
+          return countries.map(country => ({
+            country_code: country,
+            net_income: simulateLuaCalculation(income, country).net_income,
+            country_name: getCountryName(country)
+          }));
+        }
+      };
+
+      console.log('Lua runtime gotowy');
+    }
+
+    // Symulacja obliczeń Lua w JavaScript (dla demo)
+    function simulateLuaCalculation(income, country) {
+      const configs = {
+        'PL': {name: 'Polska', tax_rate: 0.17, insurance: 0.23, currency: 'PLN'},
+        'DE': {name: 'Niemcy', tax_rate: 0.25, insurance: 0.17, currency: 'EUR'},
+        'US': {name: 'USA', tax_rate: 0.22, insurance: 0.08, currency: 'USD'}
+      };
+
+      const config = configs[country] || configs['PL'];
+      const total_deductions = income * (config.tax_rate + config.insurance);
+      const net_income = income - total_deductions;
+
+      return {
+        gross_income: income,
+        net_income: net_income,
+        income_tax: income * config.tax_rate,
+        insurance: income * config.insurance,
+        total_deductions: total_deductions,
+        take_home_percentage: net_income / income,
+        country: config.name,
+        currency: config.currency
+      };
+    }
+
+    function getCountryName(code) {
+      const names = {'PL': 'Polska', 'DE': 'Niemcy', 'US': 'USA'};
+      return names[code] || code;
+    }
+
+    // Aktualizacja wyświetlanych danych
+    function updateCalculation() {
+      try {
+        // Wywołanie funkcji Lua przez bridge
+        const result = window.luaFunctions.calculate_net_income(currentIncome, currentCountry);
+
+        if (result) {
+          // Aktualizacja elementów tekstowych
+          document.getElementById('gross-income').textContent =
+            `${formatCurrency(result.gross_income, result.currency)}`;
+          document.getElementById('net-income').textContent =
+            `${formatCurrency(result.net_income, result.currency)}`;
+          document.getElementById('income-tax').textContent =
+            `${formatCurrency(result.income_tax, result.currency)}`;
+          document.getElementById('insurance').textContent =
+            `${formatCurrency(result.insurance, result.currency)}`;
+          document.getElementById('tax-rate').textContent =
+            `${(result.take_home_percentage * 100).toFixed(1)}%`;
+
+          // Aktualizacja wykresów
+          updatePieChart(result);
+          updateComparisonChart();
+
+          console.log('Obliczenia zaktualizowane dla', result.country);
+        }
+      } catch (error) {
+        console.error('Błąd obliczeń:', error);
+        showError('Błąd podczas obliczeń podatkowych');
+      }
+    }
+
+    // Formatowanie waluty
+    function formatCurrency(amount, currency) {
+      const locale = currency === 'PLN' ? 'pl-PL' : currency === 'EUR' ? 'de-DE' : 'en-US';
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency
+      }).format(amount);
+    }
+
+    // Tworzenie wykresu kołowego podziału dochodu
+    function updatePieChart(data) {
+      const container = document.getElementById('pie-chart');
+      container.innerHTML = '';
+
+      const centerX = 120;
+      const centerY = 120;
+      const radius = 80;
+
+      const segments = [
+        {label: 'Podatek dochodowy', value: data.income_tax, color: '#EF4444'},
+        {label: 'Ubezpieczenia', value: data.insurance, color: '#F59E0B'},
+        {label: 'Dochód netto', value: data.net_income, color: '#10B981'}
+      ];
+
+      const total = segments.reduce((sum, seg) => sum + seg.value, 0);
+      let currentAngle = 0;
+
+      segments.forEach((segment, index) => {
+        const percentage = segment.value / total;
+        const angle = percentage * 2 * Math.PI;
+
+        if (percentage > 0.01) { // Pokaż tylko segmenty > 1%
+          const largeArcFlag = angle > Math.PI ? 1 : 0;
+          const x1 = centerX + radius * Math.cos(currentAngle);
+          const y1 = centerY + radius * Math.sin(currentAngle);
+          const x2 = centerX + radius * Math.cos(currentAngle + angle);
+          const y2 = centerY + radius * Math.sin(currentAngle + angle);
+
+          const pathData = [
+            `M ${centerX} ${centerY}`,
+            `L ${x1} ${y1}`,
+            `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+            'Z'
+          ].join(' ');
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", pathData);
+          path.setAttribute("fill", segment.color);
+          path.setAttribute("stroke", "#fff");
+          path.setAttribute("stroke-width", "2");
+          path.setAttribute("opacity", "0.8");
+
+          // Hover effects
+          path.addEventListener("mouseenter", function() {
+            this.setAttribute("opacity", "1");
+            this.setAttribute("transform", `scale(1.05)`);
+            this.style.transformOrigin = `${centerX}px ${centerY}px`;
+          });
+
+          path.addEventListener("mouseleave", function() {
+            this.setAttribute("opacity", "0.8");
+            this.setAttribute("transform", "scale(1)");
+          });
+
+          container.appendChild(path);
+
+          // Etykieta z procentem
+          const labelAngle = currentAngle + angle / 2;
+          const labelX = centerX + (radius * 0.7) * Math.cos(labelAngle);
+          const labelY = centerY + (radius * 0.7) * Math.sin(labelAngle);
+
+          const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          text.setAttribute("x", labelX);
+          text.setAttribute("y", labelY);
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("font-family", "Arial, sans-serif");
+          text.setAttribute("font-size", "11");
+          text.setAttribute("font-weight", "bold");
+          text.setAttribute("fill", "white");
+          text.textContent = `${(percentage * 100).toFixed(0)}%`;
+          container.appendChild(text);
+        }
+
+        currentAngle += angle;
+      });
+
+      // Legenda
+      segments.forEach((segment, index) => {
+        const legendY = 280 + (index * 25);
+
+        // Kolorowy kwadracik
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", "50");
+        rect.setAttribute("y", legendY);
+        rect.setAttribute("width", "15");
+        rect.setAttribute("height", "15");
+        rect.setAttribute("fill", segment.color);
+        container.appendChild(rect);
+
+        // Tekst legendy
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", "75");
+        text.setAttribute("y", legendY + 12);
+        text.setAttribute("font-family", "Arial, sans-serif");
+        text.setAttribute("font-size", "12");
+        text.setAttribute("fill", "#374151");
+        text.textContent = `${segment.label}: ${formatCurrency(segment.value, data.currency)}`;
+        container.appendChild(text);
+      });
+    }
+
+    // Wykres porównawczy krajów
+    function updateComparisonChart() {
+      const countries = ['PL', 'DE', 'US'];
+      const comparison = window.luaFunctions.compare_countries(currentIncome, countries);
+
+      const container = document.getElementById('comparison-chart');
+      container.innerHTML = '';
+
+      const chartWidth = 350;
+      const barHeight = 30;
+      const maxNet = Math.max(...comparison.map(c => c.net_income));
+
+      comparison.forEach((country, index) => {
+        const y = index * 50 + 20;
+        const barWidth = (country.net_income / maxNet) * chartWidth;
+
+        // Słupek
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", "100");
+        rect.setAttribute("y", y);
+        rect.setAttribute("width", barWidth);
+        rect.setAttribute("height", barHeight);
+        rect.setAttribute("fill", index === 0 ? "#10B981" : index === 1 ? "#3B82F6" : "#8B5CF6");
+        rect.setAttribute("opacity", "0.8");
+        rect.setAttribute("rx", "4");
+
+        // Animacja
+        rect.style.transform = "scaleX(0)";
+        rect.style.transformOrigin = "left";
+        rect.style.transition = "transform 0.8s ease-out";
+        setTimeout(() => {
+          rect.style.transform = "scaleX(1)";
+        }, index * 200);
+
+        container.appendChild(rect);
+
+        // Nazwa kraju
+        const countryText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        countryText.setAttribute("x", "90");
+        countryText.setAttribute("y", y + 20);
+        countryText.setAttribute("text-anchor", "end");
+        countryText.setAttribute("font-family", "Arial, sans-serif");
+        countryText.setAttribute("font-size", "13");
+        countryText.setAttribute("font-weight", "bold");
+        countryText.setAttribute("fill", "#374151");
+        countryText.textContent = country.country_name;
+        container.appendChild(countryText);
+
+        // Wartość netto
+        const valueText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        valueText.setAttribute("x", 100 + barWidth + 10);
+        valueText.setAttribute("y", y + 20);
+        valueText.setAttribute("font-family", "Arial, sans-serif");
+        valueText.setAttribute("font-size", "12");
+        valueText.setAttribute("fill", "#1F2937");
+        valueText.textContent = formatCurrency(country.net_income,
+          country.country_code === 'PL' ? 'PLN' : country.country_code === 'DE' ? 'EUR' : 'USD');
+        container.appendChild(valueText);
+      });
+    }
+
+    // Funkcje kontrolek
+    function updateIncome(value) {
+      currentIncome = parseFloat(value);
+      document.getElementById('income-display').textContent = formatCurrency(currentIncome,
+        currentCountry === 'PL' ? 'PLN' : currentCountry === 'DE' ? 'EUR' : 'USD');
+      updateCalculation();
+    }
+
+    function selectCountry(country) {
+      currentCountry = country;
+
+      // Aktualizacja stylu przycisków
+      document.querySelectorAll('.country-btn').forEach(btn => {
+        btn.setAttribute('fill', '#94A3B8');
+      });
+      document.getElementById('btn-' + country).setAttribute('fill', '#3B82F6');
+
+      updateCalculation();
+    }
+
+    function showError(message) {
+      const errorElement = document.getElementById('error-message');
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        setTimeout(() => {
+          errorElement.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    // Inicjalizacja po załadowaniu
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Lua Tax Calculator SVG załadowany');
+
+      initLuaRuntime();
+      updateCalculation();
+
+      // Ukrycie komunikatu ładowania
+      const loading = document.getElementById('loading');
+      if (loading) {
+        setTimeout(() => {
+          loading.style.display = 'none';
+        }, 1000);
+      }
+    });
+  ]]></script>
+
+  <!-- Definicje gradientów -->
+  <defs>
+    <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.2)"/>
+    </filter>
+  </defs>
+
+  <!-- Nagłówek -->
+  <rect width="900" height="80" fill="url(#headerGradient)" filter="url(#dropShadow)"/>
+  <text x="450" y="35" text-anchor="middle" fill="white"
+        font-family="Arial, sans-serif" font-size="28" font-weight="bold">
+    🧮 Kalkulator Podatkowy - Lua Business Logic
+  </text>
+  <text x="450" y="60" text-anchor="middle" fill="#E0E7FF"
+        font-family="Arial, sans-serif" font-size="14">
+    Porównanie systemów podatkowych PL, DE, US z zaawansowaną logiką biznesową
+  </text>
+
+  <!-- Panel kontrolny -->
+  <rect x="20" y="100" width="860" height="120" fill="#F8FAFC" stroke="#E2E8F0" rx="10"/>
+
+  <!-- Wybór kraju -->
+  <text x="40" y="130" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">
+    🌍 Wybierz kraj:
+  </text>
+
+  <g id="country-buttons">
+    <rect id="btn-PL" class="country-btn" x="40" y="140" width="80" height="35"
+          fill="#3B82F6" stroke="#2563EB" rx="6" style="cursor:pointer;"
+          onclick="selectCountry('PL')"/>
+    <text x="80" y="162" text-anchor="middle" fill="white" font-size="13"
+          style="pointer-events:none;" font-family="Arial, sans-serif">🇵🇱 Polska</text>
+
+    <rect id="btn-DE" class="country-btn" x="130" y="140" width="80" height="35"
+          fill="#94A3B8" stroke="#64748B" rx="6" style="cursor:pointer;"
+          onclick="selectCountry('DE')"/>
+    <text x="170" y="162" text-anchor="middle" fill="white" font-size="13"
+          style="pointer-events:none;" font-family="Arial, sans-serif">🇩🇪 Niemcy</text>
+
+    <rect id="btn-US" class="country-btn" x="220" y="140" width="80" height="35"
+          fill="#94A3B8" stroke="#64748B" rx="6" style="cursor:pointer;"
+          onclick="selectCountry('US')"/>
+    <text x="260" y="162" text-anchor="middle" fill="white" font-size="13"
+          style="pointer-events:none;" font-family="Arial, sans-serif">🇺🇸 USA</text>
+  </g>
+
+  <!-- Suwak dochodu -->
+  <text x="400" y="130" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">
+    💰 Dochód roczny brutto:
+  </text>
+  <text id="income-display" x="400" y="150" font-family="Arial, sans-serif" font-size="14" fill="#4B5563">
+    60,000 PLN
+  </text>
+
+  <!-- Symulacja suwaka (w rzeczywistości byłby to input range) -->
+  <rect x="400" y="160" width="200" height="8" fill="#D1D5DB" rx="4"/>
+  <rect x="480" y="158" width="12" height="12" fill="#3B82F6" rx="6" style="cursor:pointer;"
+        onmousedown="startDrag(event)" />
+
+  <text x="400" y="185" font-family="Arial, sans-serif" font-size="11" fill="#6B7280">20k</text>
+  <text x="580" y="185" font-family="Arial, sans-serif" font-size="11" fill="#6B7280">120k</text>
+
+  <!-- Wyniki obliczeń -->
+  <rect x="20" y="240" width="860" height="100" fill="#FFFFFF" stroke="#E5E7EB" rx="8" filter="url(#dropShadow)"/>
+
+  <text x="40" y="270" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1F2937">
+    📊 Wyniki obliczeń:
+  </text>
+
+  <g id="results-grid">
+    <!-- Pierwsza kolumna -->
+    <text x="40" y="295" font-family="Arial, sans-serif" font-size="13" fill="#4B5563">Dochód brutto:</text>
+    <text id="gross-income" x="40" y="315" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#059669">
+      60,000 PLN
+    </text>
+
+    <!-- Druga kolumna -->
+    <text x="200" y="295" font-family="Arial, sans-serif" font-size="13" fill="#4B5563">Podatek dochodowy:</text>
+    <text id="income-tax" x="200" y="315" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#DC2626">
+      10,200 PLN
+    </text>
+
+    <!-- Trzecia kolumna -->
+    <text x="380" y="295" font-family="Arial, sans-serif" font-size="13" fill="#4B5563">Ubezpieczenia:</text>
+    <text id="insurance" x="380" y="315" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#D97706">
+      13,800 PLN
+    </text>
+
+    <!-- Czwarta kolumna -->
+    <text x="540" y="295" font-family="Arial, sans-serif" font-size="13" fill="#4B5563">Dochód netto:</text>
+    <text id="net-income" x="540" y="315" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#059669">
+      36,000 PLN
+    </text>
+
+    <!-- Piąta kolumna -->
+    <text x="720" y="295" font-family="Arial, sans-serif" font-size="13" fill="#4B5563">% "na rękę":</text>
+    <text id="tax-rate" x="720" y="315" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#059669">
+      60.0%
+    </text>
+  </g>
+
+  <!-- Sekcja wykresów -->
+  <g id="charts-section">
+    <!-- Wykres kołowy - podział dochodu -->
+    <rect x="20" y="360" width="300" height="320" fill="#FAFAFA" stroke="#E5E7EB" rx="8"/>
+    <text x="170" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">
+      🥧 Podział dochodu
+    </text>
+    <g id="pie-chart" transform="translate(20, 360)">
+      <!-- Wykres generowany dynamicznie -->
+    </g>
+
+    <!-- Wykres porównawczy krajów -->
+    <rect x="340" y="360" width="540" height="320" fill="#FAFAFA" stroke="#E5E7EB" rx="8"/>
+    <text x="610" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">
+      🏆 Porównanie krajów - dochód netto
+    </text>
+    <g id="comparison-chart" transform="translate(340, 400)">
+      <!-- Wykres generowany dynamicznie -->
+    </g>
+  </g>
+
+  <!-- Komunikat ładowania -->
+  <g id="loading">
+    <rect x="350" y="300" width="200" height="60" fill="white" stroke="#D1D5DB" rx="8"
+          filter="url(#dropShadow)" opacity="0.95"/>
+    <text x="450" y="325" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#374151">
+      🔄 Inicjalizacja Lua runtime...
+    </text>
+    <text x="450" y="345" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#6B7280">
+      Ładowanie logiki biznesowej
+    </text>
+  </g>
+
+  <!-- Komunikat o błędzie -->
+  <text id="error-message" x="450" y="350" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="14" fill="#DC2626" style="display:none;">
+  </text>
+
+  <!-- Stopka -->
+  <rect x="0" y="680" width="900" height="20" fill="#F1F5F9"/>
+  <text x="20" y="693" font-family="Arial, sans-serif" font-size="10" fill="#64748B">
+    🌙 Powered by Lua Business Logic | Przykładowe stawki podatkowe |
+    <tspan fill="#6366F1">Logika: 150+ linii kodu Lua</tspan>
+  </text>
+
+</svg>
